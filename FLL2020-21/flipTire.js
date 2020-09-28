@@ -1,0 +1,11 @@
+control.runInParallel(function () {
+    motors.largeBC.run(-100)
+    pause(20)
+})
+motors.mediumA.run(-100)
+pause(300)
+motors.largeBC.stop()
+motors.mediumA.stop()
+motors.largeBC.run(100, 0.6, MoveUnit.Rotations)
+motors.mediumA.run(20, 200, MoveUnit.Degrees)
+brick.exitProgram()
