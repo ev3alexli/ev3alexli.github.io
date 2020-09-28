@@ -7,6 +7,7 @@ let movingSide    = 11  // 11 left color sensor moving along left side of black 
 let stopCondition = 0   // 0 stop on black line with another color sensor
 let stopValue     = 20  // stop when the stop color sensor got color less than stopValue
 let power         = -80 // default is -80, because out robot is backwards
+let wheelDiameter = 6.24// will only be used in DISTANCE_STOP
 //
 ////////////////////////////////////////////
 // init
@@ -46,7 +47,10 @@ let TIMER_STOP = 4        // |second
 ////////////////////////////////////////////
 // start
 ////////////////////////////////////////////
-// 7. checking color sensor
+// 7. reset
+motors.largeBC.reset()
+control.timer1.reset()
+// 8. checking color sensor
 let moveColorSensor = sensors.color1
 let moveColorSensorId = LEFT_COLOR_SENSOR
 let stopColorSensor = sensors.color3
@@ -59,23 +63,23 @@ if (Math.floor(movingSide / 10) == RIGHT_COLOR_SENSOR) {
     stopColorSensor = sensors.color1
 }
 //
-// 8. check input parameter movingSide, get moving side
+// 9. check input parameter movingSide, get moving side
 let side = LEFT
 if (movingSide % 10 == RIGHT) {
     side = RIGHT
 }
 //
-// 9. define turn
+// 10. define turn
 let turn = 0
 //
 // current color sensor light
 let movingColorValue = 0
 let stopColorValue = 0
 //
-// 10. setup PID parameters
+// 11. setup PID parameters
 automation.pid1.setGains(0.5, 0.3, 0.0005)
 //
-// 11. loop for moving the robot
+// 12. loop for moving the robot
 let keepLooping = true
 while (keepLooping) {
     // check stop input
@@ -86,13 +90,24 @@ while (keepLooping) {
             keepLooping = false
         }
     } else if ( stopCondition == DISTANCE_STOP ) {
-        keepLooping = false
+        let pastDistance = (motors.largeB.angle() + motors.largeC.angle()) / 720 * 3.14 * wheelDiameter
+        if (pastDistance >= stopValue) {
+            keepLooping = false
+        }
     } else if ( stopCondition == ROTATION_STOP ) {
-        keepLooping = false
+        let pastRotation = (motors.largeB.angle() + motors.largeC.angle()) / 720
+        if (pastRotation >= stopValue) {
+            keepLooping = false
+        }
     } else if ( stopCondition ==DEGREE_STOP ) {
-        keepLooping = false
+        let pastDegree = (motors.largeB.angle() + motors.largeC.angle()) / 2
+        if (pastDegree >= stopValue) {
+            keepLooping = false
+        }
     } else if ( stopCondition == TIMER_STOP ) {
-        keepLooping = false
+        if (control.timer1.millis() >= stopValue) {
+            keepLooping = false
+        }
     }
     //
     // get color from moving color sensor
