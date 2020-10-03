@@ -4,10 +4,10 @@
 //
 // 1. get input parameters
 let movingSide    = 11  // 11 left color sensor moving along left side of black line 12, 31, 32
-let stopCondition = 0   // 0 stop on black line with another color sensor
-let stopValue     = 20  // stop when the stop color sensor got color less than stopValue
+let stopCondition = 1   // 0 stop on black line with another color sensor
+let stopValue     = 50  // stop when the stop color sensor got color less than stopValue
 let power         = -80 // default is -80, because out robot is backwards
-let wheelDiameter = 6.24// will only be used in DISTANCE_STOP
+let wheelDiameter = 7 // will only be used in DISTANCE_STOP
 //
 ////////////////////////////////////////////
 // init
@@ -34,15 +34,15 @@ let MIDDLE = 3
 let LEFT_COLOR_SENSOR_ON_LEFT_SIDE = 11
 let LEFT_COLOR_SENSOR_ON_RIGHT_SIDE = 12
 let RIGHT_COLOR_SENSOR_ON_LEFT_SIDE = 31
-let ROGHT_COLOR_SENSOR_ON_RIGHT_SIDE = 32
+let RIGHT_COLOR_SENSOR_ON_RIGHT_SIDE = 32
 //
 ////////////////////////////////////////////
 // 6. stop conditions     // |value
 let BLACK_LINE_STOP = 0   // |black
-let DISTANCE_STOP = 1     // |cm
-let ROTATION_STOP = 2     // |rotation
-let DEGREE_STOP = 3       // |degree
-let TIMER_STOP = 4        // |second
+let DISTANCE_STOP = 1     // |centimeters
+let ROTATION_STOP = 2     // |rotations
+let DEGREE_STOP = 3       // |degrees
+let TIMER_STOP = 4        // |miliseconds
 //
 ////////////////////////////////////////////
 // start
@@ -77,7 +77,7 @@ let movingColorValue = 0
 let stopColorValue = 0
 //
 // 11. setup PID parameters
-automation.pid1.setGains(0.5, 0.3, 0.0005)
+automation.pid1.setGains(0.5, 0.3, 0.0002)
 //
 // 12. loop for moving the robot
 let keepLooping = true
@@ -90,17 +90,24 @@ while (keepLooping) {
             keepLooping = false
         }
     } else if ( stopCondition == DISTANCE_STOP ) {
-        let pastDistance = (motors.largeB.angle() + motors.largeC.angle()) / 720 * 3.14 * wheelDiameter
+        let pastDistance = motors.largeB.angle() / 360 * 3.14 * wheelDiameter
+        pastDistance = Math.abs(pastDistance)
+        // brick.showString("Current Distance:", 10)
+        // brick.showNumber(pastDistance, 11) 
         if (pastDistance >= stopValue) {
             keepLooping = false
         }
     } else if ( stopCondition == ROTATION_STOP ) {
-        let pastRotation = (motors.largeB.angle() + motors.largeC.angle()) / 720
+        let pastRotation = motors.largeB.angle() / 360
+        pastRotation = Math.abs(pastRotation)
+        // brick.showString("Current Distance:", 10)
+        // brick.showNumber(pastDistance, 11) 
         if (pastRotation >= stopValue) {
             keepLooping = false
         }
     } else if ( stopCondition ==DEGREE_STOP ) {
-        let pastDegree = (motors.largeB.angle() + motors.largeC.angle()) / 2
+        let pastDegree = motors.largeB.angle()
+        pastDegree = Math.abs(pastDegree)
         if (pastDegree >= stopValue) {
             keepLooping = false
         }
@@ -123,11 +130,11 @@ while (keepLooping) {
     motors.largeBC.steer(turn, power)
     //
     // display information
-    brick.showString("Color Value:", 3)
+    brick.showString("Moving Color Value:", 3)
     brick.showNumber(movingColorValue, 4)
     brick.showString("turn Value:", 6)
     brick.showNumber(turn, 7)
-    brick.showString("Color Value:", 8)
+    brick.showString("Stop Color Value:", 8)
     brick.showNumber(stopColorValue, 9)    
 }
 
@@ -139,3 +146,4 @@ motors.largeBC.stop()
 
 // clear screen
 brick.clearScreen()
+//brick.exitProgram()
