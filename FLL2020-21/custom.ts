@@ -5,16 +5,16 @@
  */
 
 enum movingSideEnum {
-    LEFT_COLOR_SENSOR_ON_LEFT_SIDE = 11,
-    LEFT_COLOR_SENSOR_ON_RIGHT_SIDE = 12,
-    RIGHT_COLOR_SENSOR_ON_LEFT_SIDE = 31,
-    RIGHT_COLOR_SENSOR_ON_RIGHT_SIDE = 32
+    LonL = 11,
+    LonR = 12,
+    RonL = 31,
+    RonR = 32
 }
 
 enum portEnum {
-    LEFT_COLOR_SENSOR = 1,
-    RIGHT_COLOR_SENSOR = 3,
-    MIDDLE_COLOR_SENSOR = 4,
+    LEFT_COLOR = 1,
+    RIGHT_COLOR = 3,
+    MIDDLE_COLOR = 4,
     GYRO_SENSOR = 2
 }
 
@@ -24,14 +24,21 @@ enum positionEnum {
     MIDDLE = 3
 }
 
-enum stopConditionEnum {
-    BLACK_LINE_STOP = 0,   // |black
-    BLACK_LINE_STOP_1 = 10,  // |black 
-    BLACK_LINE_STOP_3 = 30,
-    DISTANCE_STOP = 1,     // |cm
-    ROTATION_STOP = 2,     // |rotation
-    DEGREE_STOP = 3,       // |degree
-    TIMER_STOP = 4         // |second
+enum stopCondColorEnum {
+    LINE_STOP = 0,   // |black
+    DIS_STOP = 1,     // |cm
+    ROT_STOP = 2,     // |rotation
+    DEG_STOP = 3,       // |degree
+    TIME_STOP = 4         // |second
+}
+
+enum stopCondGyroEnum {
+    LINE_STOP_1 = 10,  // |black 
+    LINE_STOP_3 = 30,
+    DIS_STOP = 1,     // |cm
+    ROT_STOP = 2,     // |rotation
+    DEG_STOP = 3,       // |degree
+    TIME_STOP = 4         // |second
 }
 
 /**
@@ -47,7 +54,7 @@ namespace MapleRobot {
      * @param power Which power of robot running, eg: 80
      */
     //% block
-    export function colorMove(movingSide: movingSideEnum, stopCondition: stopConditionEnum, stopValue: number, power: number): void {
+    export function colorMove(movingSide: movingSideEnum, stopCondition: stopCondColorEnum, stopValue: number, power: number): void {
         power = (-1) * Math.abs(power)
         ////////////////////////////////////////////
         // color sensor 0:black, 100:white
@@ -58,7 +65,7 @@ namespace MapleRobot {
         // let stopCondition = 1   // 0 stop on black line with another color sensor
         // let stopValue = 50  // stop when the stop color sensor got color less than stopValue
         // let power = -80 // default is -80, because out robot is backwards
-        let wheelDiameter = 7 // will only be used in DISTANCE_STOP
+        let wheelDiameter = 7 // will only be used in DIS_STOP
         //
         ////////////////////////////////////////////
         // init
@@ -75,14 +82,14 @@ namespace MapleRobot {
         control.timer1.reset()
         // 8. checking color sensor
         let moveColorSensor = sensors.color1
-        let moveColorSensorId = portEnum.LEFT_COLOR_SENSOR
+        let moveColorSensorId = portEnum.LEFT_COLOR
         let stopColorSensor = sensors.color3
-        let stopColorSensorId = portEnum.RIGHT_COLOR_SENSOR
+        let stopColorSensorId = portEnum.RIGHT_COLOR
         // check input parameter movingSide, get moving color sensor, and stop color sensor
-        if (Math.floor(movingSide / 10) == portEnum.RIGHT_COLOR_SENSOR) {
-            stopColorSensorId = portEnum.LEFT_COLOR_SENSOR
+        if (Math.floor(movingSide / 10) == portEnum.RIGHT_COLOR) {
+            stopColorSensorId = portEnum.LEFT_COLOR
             moveColorSensor = sensors.color3
-            moveColorSensorId = portEnum.RIGHT_COLOR_SENSOR
+            moveColorSensorId = portEnum.RIGHT_COLOR
             stopColorSensor = sensors.color1
         }
         //
@@ -106,13 +113,13 @@ namespace MapleRobot {
         let keepLooping = true
         while (keepLooping) {
             // check stop input
-            if (stopCondition == stopConditionEnum.BLACK_LINE_STOP) {
+            if (stopCondition == stopCondColorEnum.LINE_STOP) {
                 // get color from stop color sensor
                 stopColorValue = stopColorSensor.light(LightIntensityMode.Reflected)
                 if (stopColorValue < stopValue) {
                     keepLooping = false
                 }
-            } else if (stopCondition == stopConditionEnum.DISTANCE_STOP) {
+            } else if (stopCondition == stopCondColorEnum.DIS_STOP) {
                 let pastDistance = motors.largeB.angle() / 360 * 3.14 * wheelDiameter
                 pastDistance = Math.abs(pastDistance)
                 // brick.showString("Current Distance:", 10)
@@ -120,7 +127,7 @@ namespace MapleRobot {
                 if (pastDistance >= stopValue) {
                     keepLooping = false
                 }
-            } else if (stopCondition == stopConditionEnum.ROTATION_STOP) {
+            } else if (stopCondition == stopCondColorEnum.ROT_STOP) {
                 let pastRotation = motors.largeB.angle() / 360
                 pastRotation = Math.abs(pastRotation)
                 // brick.showString("Current Distance:", 10)
@@ -128,13 +135,13 @@ namespace MapleRobot {
                 if (pastRotation >= stopValue) {
                     keepLooping = false
                 }
-            } else if (stopCondition == stopConditionEnum.DEGREE_STOP) {
+            } else if (stopCondition == stopCondColorEnum.DEG_STOP) {
                 let pastDegree = motors.largeB.angle()
                 pastDegree = Math.abs(pastDegree)
                 if (pastDegree >= stopValue) {
                     keepLooping = false
                 }
-            } else if (stopCondition == stopConditionEnum.TIMER_STOP) {
+            } else if (stopCondition == stopCondColorEnum.TIME_STOP) {
                 if (control.timer1.millis() >= stopValue) {
                     keepLooping = false
                 }
@@ -180,13 +187,13 @@ namespace MapleRobot {
      * @param power Which power of robot running, eg: 80
      */
     //% block
-    export function gyroMove(stopCondition: stopConditionEnum, stopValue: number, power: number): void {
+    export function gyroMove(stopCondition: stopCondGyroEnum, stopValue: number, power: number): void {
         power = (-1) * Math.abs(power)
         // 1. get input parameters
         // let stopCondition = 3   // 0 stop on black line with another color sensor
         // let stopValue = 720  // stop when the stop color sensor got color less than stopValue
         // let power = -80 // default is -80, because out robot is backwards
-        let wheelDiameter = 7 // will only be used in DISTANCE_STOP
+        let wheelDiameter = 7 // will only be used in DIS_STOP
         //
         ////////////////////////////////////////////
         // start
@@ -209,17 +216,17 @@ namespace MapleRobot {
         let keepLooping = true
         while (keepLooping) {
             // check stop input
-            if (stopCondition == stopConditionEnum.BLACK_LINE_STOP_1 || stopCondition == stopConditionEnum.BLACK_LINE_STOP_3) {
+            if (stopCondition == stopCondGyroEnum.LINE_STOP_1 || stopCondition == stopCondGyroEnum.LINE_STOP_3) {
                 // get color from stop color sensor
                 let stopColorSensor = sensors.color1
-                if (stopCondition == stopConditionEnum.BLACK_LINE_STOP_3) {
+                if (stopCondition == stopCondGyroEnum.LINE_STOP_3) {
                     stopColorSensor = sensors.color3
                 }
                 stopColorValue = stopColorSensor.light(LightIntensityMode.Reflected)
                 if (stopColorValue < stopValue) {
                     keepLooping = false
                 }
-            } else if (stopCondition == stopConditionEnum.DISTANCE_STOP) {
+            } else if (stopCondition == stopCondGyroEnum.DIS_STOP) {
                 let pastDistance = motors.largeB.angle() / 360 * 3.14 * wheelDiameter
                 pastDistance = Math.abs(pastDistance)
                 // brick.showString("Current Distance:", 10)
@@ -227,7 +234,7 @@ namespace MapleRobot {
                 if (pastDistance >= stopValue) {
                     keepLooping = false
                 }
-            } else if (stopCondition == stopConditionEnum.ROTATION_STOP) {
+            } else if (stopCondition == stopCondGyroEnum.ROT_STOP) {
                 let pastRotation = motors.largeB.angle() / 360
                 pastRotation = Math.abs(pastRotation)
                 // brick.showString("Current Distance:", 10)
@@ -235,13 +242,13 @@ namespace MapleRobot {
                 if (pastRotation >= stopValue) {
                     keepLooping = false
                 }
-            } else if (stopCondition == stopConditionEnum.DEGREE_STOP) {
+            } else if (stopCondition == stopCondGyroEnum.DEG_STOP) {
                 let pastDegree = motors.largeB.angle()
                 pastDegree = Math.abs(pastDegree)
                 if (pastDegree >= stopValue) {
                     keepLooping = false
                 }
-            } else if (stopCondition == stopConditionEnum.TIMER_STOP) {
+            } else if (stopCondition == stopCondGyroEnum.TIME_STOP) {
                 if (control.timer1.millis() >= stopValue) {
                     keepLooping = false
                 }
@@ -269,5 +276,63 @@ namespace MapleRobot {
         // clear screen
         brick.clearScreen()
         //brick.exitProgram()
+    }
+    /**
+     * TODO: Move along Black Line
+     * @param targetAngle Angle of turning, eg: 90
+     * @param turnPoint Pivot point setting, eg: 3
+     */
+    //% block
+    export function gyroTurn(targetAngle: number, turnPoint: positionEnum): void {
+        // current sensor readings
+        let gyroValue = 0
+        //
+        // turn right
+        let turnRatio = 200
+        // turn left
+        if (targetAngle < 0) {
+            turnRatio = -200
+        }
+        //
+        let turnAngle = Math.abs(targetAngle)
+        // reset gyro sensor
+        //sensors.gyro2.reset()
+        //loops.pause(100)
+        //
+        let keepLooping = true
+        while (keepLooping) {
+            // get value from gyro sensor
+            gyroValue = Math.abs(sensors.gyro2.angle())
+            // exit
+            if (gyroValue >= turnAngle) {
+                keepLooping = false
+            }
+            // calculate power
+            let currentPower = 0.6 * (turnAngle - gyroValue) + 6
+            //
+            if (turnPoint == positionEnum.MIDDLE) {
+                motors.largeBC.steer(turnRatio, currentPower)
+                //brick.showNumber(MIDDLE, 1)
+            } else if (turnPoint == positionEnum.LEFT) {
+                motors.largeB.run(currentPower)
+                if (targetAngle < 0) {
+                    motors.largeB.run(0 - currentPower)
+                }
+                //brick.showNumber(LEFT, 1)
+            } else if (turnPoint == positionEnum.RIGHT) {
+                motors.largeC.run(currentPower)
+                if (targetAngle < 0) {
+                    motors.largeC.run(0 - currentPower)
+                }
+                //brick.showNumber(RIGHT, 1)
+            }
+            // display
+            brick.showString("Gyro: ", 2)
+            brick.showNumber(gyroValue, 3)
+            brick.showString("Power: ", 5)
+            brick.showNumber(currentPower, 6)
+        }
+        motors.largeBC.setBrake(true)
+        motors.largeBC.stop()
     }
 }
