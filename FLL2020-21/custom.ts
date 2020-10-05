@@ -47,13 +47,14 @@ enum stopCondGyroEnum {
 //% weight=100 color=#e01515 icon="枫"
 namespace MapleRobot {
     /**
-     * TODO: Move along Black Line
+     * Moving along the black line and stopping with multiple conditions
      * @param movingSide Which side of moving, eg: 11
      * @param stopCondition Which condition of stopping, eg: 0
      * @param stopValue Which value of stopping, eg: 15
      * @param power Which power of robot running, eg: 80
      */
     //% block
+    //% group="Color"
     export function colorMove(movingSide: movingSideEnum, stopCondition: stopCondColorEnum, stopValue: number, power: number): void {
         power = (-1) * Math.abs(power)
         ////////////////////////////////////////////
@@ -180,13 +181,15 @@ namespace MapleRobot {
 
     }
     /**
-     * TODO: Move along Black Line
+     * Moving with gyro sensor
      * @param movingSide Which side of moving, eg: 11
      * @param stopCondition Which condition of stopping, eg: 0
      * @param stopValue Which value of stopping, eg: 15
      * @param power Which power of robot running, eg: 80
      */
     //% block
+    //% group="Gyro"
+
     export function gyroMove(stopCondition: stopCondGyroEnum, stopValue: number, power: number): void {
         power = (-1) * Math.abs(power)
         // 1. get input parameters
@@ -278,11 +281,12 @@ namespace MapleRobot {
         //brick.exitProgram()
     }
     /**
-     * TODO: Move along Black Line
+     * Turning wtih gyro sensor
      * @param targetAngle Angle of turning, eg: 90
      * @param turnPoint Pivot point setting, eg: 3
      */
     //% block
+    //% group="Gyro"
     export function gyroTurn(targetAngle: number, turnPoint: positionEnum): void {
         // current sensor readings
         let gyroValue = 0
@@ -334,5 +338,52 @@ namespace MapleRobot {
         }
         motors.largeBC.setBrake(true)
         motors.largeBC.stop()
+    }
+    /**
+     * Moving to black line
+     * @param count Count of repetition, eg: 2
+     */
+    //% block
+    //% group="Color"
+    export function moveToBlack(count: number): void {
+        motors.largeB.setBrake(true)
+        motors.largeC.setBrake(true)
+        for (let i = 0; i < count; i++) {
+            let colorBlack1 = false
+            let colorBlack2 = false
+            control.runInParallel(function () {
+                motors.largeB.run(-16)
+            })
+            control.runInParallel(function () {
+                motors.largeC.run(-16)
+            })
+            while (true) {
+                if (sensors.color1.light(LightIntensityMode.Reflected) <= 15) {
+                    brick.showString("motorC", 1)
+                    if (colorBlack2) {
+                        pause(10)
+                    }
+                    motors.largeC.stop()
+                    colorBlack1 = true
+                }
+                if (sensors.color3.light(LightIntensityMode.Reflected) <= 15) {
+                    brick.showString("motorB", 2)
+                    if (colorBlack1) {
+                        pause(10)
+                    }
+                    motors.largeB.stop()
+                    colorBlack2 = true
+                }
+                if (colorBlack1 && colorBlack2) {
+                    colorBlack1 = false
+                    colorBlack2 = false
+                    motors.largeBC.steer(0, 16, 40, MoveUnit.Degrees)
+                    break;
+                }
+                pause(50)
+            }
+        
+        }
+        
     }
 }
