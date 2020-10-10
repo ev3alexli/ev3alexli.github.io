@@ -180,6 +180,7 @@ namespace MapleRobot {
         //brick.exitProgram()
 
     }
+
     /**
      * Moving with gyro sensor
      * @param movingSide Which side of moving, eg: 11
@@ -189,7 +190,6 @@ namespace MapleRobot {
      */
     //% block
     //% group="Gyro"
-
     export function gyroMove(stopCondition: stopCondGyroEnum, stopValue: number, power: number): void {
         power = (-1) * Math.abs(power)
         // 1. get input parameters
@@ -280,6 +280,7 @@ namespace MapleRobot {
         brick.clearScreen()
         //brick.exitProgram()
     }
+
     /**
      * Turning wtih gyro sensor
      * @param targetAngle Angle of turning, eg: 90
@@ -339,6 +340,7 @@ namespace MapleRobot {
         motors.largeBC.setBrake(true)
         motors.largeBC.stop()
     }
+
     /**
      * Moving to black line
      * @param count Count of repetition, eg: 2
@@ -385,5 +387,93 @@ namespace MapleRobot {
         
         }
         
+    }
+    
+    /**
+     * Gyro distance with Acceleration and decceleration
+     * @param distance Distance of movement, eg: 100
+     */
+    //% block
+    //% group="Gyro"
+    export function accelerationDistance(distance: number): void {
+        let minSpeed = -10
+        let turn = 0
+        let power = 0
+        let gyroValue = 0
+        let keepLooping = true
+        let wheelDiameter = 6.24
+        let DYNAMIC_SPEED_ROTATION = 1.5
+        let disRotation = distance / (3.14 * wheelDiameter)
+        // setup PID parameters
+        automation.pid1.setGains(3, 3, 0)
+        // reset gyro
+        //sensors.gyro2.reset()
+        //sensors.gyro2.calibrate()
+        // reset and start motor
+        //motors.largeBC.reset()
+        motors.largeBC.run(minSpeed)
+        pause(100)
+        // loop
+        keepLooping = true
+        while (keepLooping) {
+            ////// current rotation
+            let RofB = motors.largeB.angle() / 360
+            RofB = Math.abs(RofB)
+        
+            ////// check condition, calculate power
+            if (disRotation >= DYNAMIC_SPEED_ROTATION * 2) {
+                // 1.1
+                if (RofB <= DYNAMIC_SPEED_ROTATION) {
+                    power = 100 * RofB / DYNAMIC_SPEED_ROTATION
+                }
+                // 1.2
+                else if (RofB > disRotation - DYNAMIC_SPEED_ROTATION) {
+                    power = 100 * (disRotation - RofB) / DYNAMIC_SPEED_ROTATION
+                }
+                // 1.3
+                else {
+                    power = 100
+                }
+            } else {
+                // 2.1
+                if (RofB < disRotation / 2) {
+                    power = 100 * (RofB / (disRotation / 2))
+                }
+                // 2.2
+                else {
+                    power = 100 * (disRotation - RofB) / (disRotation / 2)
+                }
+            }
+        
+            ////// get value from gyro sensor
+            gyroValue = sensors.gyro2.angle()
+            // calculate turn pid 
+            turn = automation.pid1.compute(0.1, 0 - gyroValue)
+            // assign to moving steering
+            motors.largeBC.steer(turn, 0 - Math.abs(power) + minSpeed)
+        
+            ////// check exit
+            let pastDistance = motors.largeB.angle() / 360 * 3.14 * wheelDiameter
+            pastDistance = Math.abs(pastDistance)
+            if (pastDistance >= distance) {
+                keepLooping = false
+            }
+        
+            // display
+            brick.showString("Gyro Value-:", 2)
+            brick.showNumber(gyroValue, 3)
+            brick.showString("turn-:", 5)
+            brick.showNumber(turn, 6)
+            brick.showString("RofB-:", 7)
+            brick.showNumber(RofB, 8)
+            brick.showString("Power-:", 9)
+            brick.showNumber(power, 10)
+        }
+        
+        // set break after stop
+        motors.largeBC.setBrake(true)
+        
+        // stop
+        motors.largeBC.stop()
     }
 }
