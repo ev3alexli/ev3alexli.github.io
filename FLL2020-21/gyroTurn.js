@@ -1,4 +1,4 @@
-let targetAngle = -90
+let targetAngle = 90
 let turnPoint = 3
 // position definitions
 let LEFT = 1
@@ -35,14 +35,16 @@ while (keepLooping) {
         motors.largeBC.steer(turnRatio, currentPower)
         //brick.showNumber(MIDDLE, 1)
     } else if (turnPoint == LEFT) {
-        motors.largeB.run(currentPower)
-        if (targetAngle < 0) {
+        if (targetAngle > 0) {
+            motors.largeB.run(currentPower)
+        } else {
             motors.largeB.run(0 - currentPower)
         }
         //brick.showNumber(LEFT, 1)
     } else if (turnPoint == RIGHT) {
-        motors.largeC.run(currentPower)
-        if (targetAngle < 0) {
+        if (targetAngle > 0) {
+            motors.largeC.run(currentPower)
+        } else {
             motors.largeC.run(0 - currentPower)
         }
         //brick.showNumber(RIGHT, 1)

@@ -315,18 +315,20 @@ namespace MapleRobot {
             // calculate power
             let currentPower = 0.6 * (turnAngle - gyroValue) + 6
             //
-            if (turnPoint == positionEnum.MIDDLE) {
+            if (turnPoint == MIDDLE) {
                 motors.largeBC.steer(turnRatio, currentPower)
                 //brick.showNumber(MIDDLE, 1)
-            } else if (turnPoint == positionEnum.LEFT) {
-                motors.largeB.run(currentPower)
-                if (targetAngle < 0) {
+            } else if (turnPoint == LEFT) {
+                if (targetAngle > 0) {
+                    motors.largeB.run(currentPower)
+                } else {
                     motors.largeB.run(0 - currentPower)
                 }
                 //brick.showNumber(LEFT, 1)
-            } else if (turnPoint == positionEnum.RIGHT) {
-                motors.largeC.run(currentPower)
-                if (targetAngle < 0) {
+            } else if (turnPoint == RIGHT) {
+                if (targetAngle > 0) {
+                    motors.largeC.run(currentPower)
+                } else {
                     motors.largeC.run(0 - currentPower)
                 }
                 //brick.showNumber(RIGHT, 1)
@@ -338,9 +340,8 @@ namespace MapleRobot {
             brick.showNumber(currentPower, 6)
         }
         motors.largeBC.setBrake(true)
-        motors.largeBC.stop()
+        motors.largeBC.stop()   
     }
-
     /**
      * Moving to black line
      * @param count Count of repetition, eg: 2
