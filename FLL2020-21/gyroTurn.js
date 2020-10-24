@@ -42,7 +42,7 @@ while (keepLooping) {
         }
         //brick.showNumber(LEFT, 1)
     } else if (turnPoint == RIGHT) {
-        if (targetAngle > 0) {
+        if (targetAngle < 0) {
             motors.largeC.run(currentPower)
         } else {
             motors.largeC.run(0 - currentPower)
