@@ -89,7 +89,11 @@ while (keepLooping) {
     // get value from gyro sensor
     gyroValue = sensors.gyro2.angle()
     // calculate turn pid 
-    turn = automation.pid1.compute(0.1, 0 - gyroValue)
+    if (power > 0) {
+        turn = automation.pid1.compute(0.1, gyroValue)
+    } else {
+        turn = automation.pid1.compute(0.1, 0 - gyroValue)
+    }
     // assign to moving steering
     motors.largeBC.steer(turn, power)
     // display
